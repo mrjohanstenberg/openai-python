@@ -35,7 +35,7 @@ TIMEOUT_SECS = 600
 MAX_CONNECTION_RETRIES = 2
 
 # Has one attribute per thread, 'session'.
-_thread_context = threading.local()
+# _thread_context = threading.local()
 
 
 def _build_api_url(url, query):
@@ -510,10 +510,12 @@ class APIRequestor:
             url, supplied_headers, method, params, files, request_id
         )
 
-        if not hasattr(_thread_context, "session"):
-            _thread_context.session = _make_session()
+        session = openai.syncsession.get()
+        if not session:
+            session = _make_session()
+            openai.syncsession.set(session)
         try:
-            result = _thread_context.session.request(
+            result = session.request(
                 method,
                 abs_url,
                 headers=headers,
